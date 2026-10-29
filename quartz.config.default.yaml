@@ -1,13 +1,12 @@
 # yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
 configuration:
-  pageTitle: Quartz 5
-  pageTitleSuffix: ""
+  pageTitle: SPORADIC
+  pageTitleSuffix: "association fongique et frugale"
   enableSPA: true
   enablePopovers: true
-  analytics:
-    provider: plausible
-  locale: en-US
-  baseUrl: quartz.jzhao.xyz
+  analytics: null
+  locale: fr-FR
+  baseUrl: sonosaure.github.io/Sporadic
   ignorePatterns:
     - private
     - templates
@@ -16,33 +15,34 @@ configuration:
     fontOrigin: googleFonts
     cdnCaching: true
     typography:
-      header: Schibsted Grotesk
-      body: Source Sans Pro
+      header: Fraunces
+      body: IBM Plex Sans
       code: IBM Plex Mono
     colors:
       lightMode:
-        light: "#faf8f8"
-        lightgray: "#e5e5e5"
-        gray: "#b8b8b8"
-        darkgray: "#4e4e4e"
-        dark: "#2b2b2b"
-        secondary: "#284b63"
-        tertiary: "#84a59d"
-        highlight: rgba(143, 159, 169, 0.15)
-        textHighlight: "#fff23688"
+        light: "#faf9f6"
+        lightgray: "#ebe9e3"
+        gray: "#9a968d"
+        darkgray: "#44413c"
+        dark: "#1c1a17"
+        secondary: "#6e6a62"
+        tertiary: "#8a857b"
+        highlight: rgba(110, 106, 98, 0.10)
+        textHighlight: "#e8e2d080"
       darkMode:
-        light: "#161618"
-        lightgray: "#393639"
-        gray: "#646464"
-        darkgray: "#d4d4d4"
-        dark: "#ebebec"
-        secondary: "#7b97aa"
-        tertiary: "#84a59d"
-        highlight: rgba(143, 159, 169, 0.15)
-        textHighlight: "#b3aa0288"
+        light: "#1c1a17"
+        lightgray: "#2a2823"
+        gray: "#9a968d"
+        darkgray: "#d6d2c9"
+        dark: "#faf9f6"
+        secondary: "#b3aea3"
+        tertiary: "#8a857b"
+        highlight: rgba(179, 174, 163, 0.12)
+        textHighlight: "#4a463d80"
+
 plugins:
   - source: "@quartz-community/created-modified-date"
-    enabled: true
+    enabled: false
     options:
       defaultDateType: modified
       priority:
@@ -68,11 +68,8 @@ plugins:
     enabled: true
     order: 40
   - source: "@quartz-community/table-of-contents"
-    enabled: true
+    enabled: false
     order: 50
-    layout:
-      position: right
-      priority: 30
   - source: "@quartz-community/crawl-links"
     enabled: true
     options:
@@ -102,9 +99,6 @@ plugins:
     enabled: true
   - source: "@quartz-themes/core"
     enabled: false
-    options:
-      theme: tokyo-night
-      mode: both
   - source: "@quartz-community/remove-draft"
     enabled: true
   - source: "@quartz-community/explicit-publish"
@@ -121,7 +115,7 @@ plugins:
   - source: "@quartz-community/og-image"
     enabled: true
   - source: "@quartz-community/cname"
-    enabled: true
+    enabled: false
   - source: "@quartz-community/canvas-page"
     enabled: true
   - source: "@quartz-community/content-page"
@@ -135,24 +129,26 @@ plugins:
     layout:
       position: left
       priority: 50
+      condition: not-index
   - source: "@quartz-community/graph"
     enabled: true
     layout:
       position: right
       priority: 10
+      condition: not-index
   - source: "@quartz-community/search"
     enabled: true
+    options:
+      showExtraSearchBar: false
     layout:
       position: left
       priority: 20
       group: toolbar
       groupOptions:
         grow: true
+      condition: not-index
   - source: "@quartz-community/backlinks"
-    enabled: true
-    layout:
-      position: right
-      priority: 50
+    enabled: false
   - source: "@quartz-community/article-title"
     enabled: true
     layout:
@@ -160,11 +156,15 @@ plugins:
       priority: 10
   - source: "@quartz-community/content-meta"
     enabled: true
+    options:
+      showTags: false
+      showDate: false
+      showReadingTime: false
     layout:
       position: beforeBody
       priority: 20
   - source: "@quartz-community/tag-list"
-    enabled: false
+    enabled: true
     layout:
       position: beforeBody
       priority: 30
@@ -173,41 +173,27 @@ plugins:
     layout:
       position: left
       priority: 10
+      condition: not-index
   - source: "@quartz-community/darkmode"
     enabled: true
     layout:
-      position: left
-      priority: 30
+      position: right
+      priority: 40
       group: toolbar
+      condition: not-index
   - source: "@quartz-community/reader-mode"
     enabled: true
     layout:
-      position: left
-      priority: 35
+      position: right
+      priority: 45
       group: toolbar
-  - source: "@quartz-community/breadcrumbs"
-    enabled: true
-    layout:
-      position: beforeBody
-      priority: 5
       condition: not-index
+  - source: "@quartz-community/breadcrumbs"
+    enabled: false
   - source: "@quartz-community/comments"
     enabled: false
-    options:
-      provider: giscus
-      options: {}
-    layout:
-      position: afterBody
-      priority: 10
   - source: "@quartz-community/footer"
-    enabled: true
-    options:
-      links:
-        GitHub: https://github.com/jackyzha0/quartz
-        Discord Community: https://discord.gg/cRFFHYye7t
-    layout:
-      position: footer
-      priority: 50
+    enabled: false
   - source: "@quartz-community/recent-notes"
     enabled: false
   - source: "@quartz-community/spacer"
@@ -244,19 +230,10 @@ plugins:
     options: {}
     order: 45
   - source: "@quartz-community/encrypted-pages"
-    enabled: true
-    options:
-      iterations: 600000
-      passwordField: password
-      unlistWhenEncrypted: false
-      outputPath: static/encryptedContentIndex.json
-    order: 900
+    enabled: false
   - source: "@quartz-community/stacked-pages"
     enabled: false
-    layout:
-      position: afterBody
-      priority: 50
-      display: all
+
 layout:
   groups:
     toolbar:

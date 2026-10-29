@@ -1,3 +1,365 @@
 @use "./variables.scss" as *;
 
-// put your custom CSS here!
+// ─── Curseur rond rouge ─────────────────────────────────────────
+// Pour changer la couleur : remplace %23e63946 (le %23 = le #).
+* {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='8' fill='%23e63946'/%3E%3C/svg%3E") 12 12, auto !important;
+}
+
+// ─── Accueil : suppression des sidebars vides ───────────────────
+#quartz-body:has(> .sidebar.left:empty),
+#quartz-body:has(> .sidebar.left > .page-header:empty) {
+  .sidebar.left {
+    display: none;
+  }
+}
+
+#quartz-body:has(> .sidebar.right:empty),
+#quartz-body:has(> .sidebar.right > .page-header:empty) {
+  .sidebar.right {
+    display: none;
+  }
+}
+
+// ─── Accueil : centrage du contenu ──────────────────────────────
+// Plus large que 65ch pour laisser la place à l'image + au texte côte à côte
+section[data-slug="index"] {
+  .center {
+    max-width: 68rem;
+    margin: 0 auto;
+    padding-top: 6vh;
+  }
+
+  // Le titre automatique, le fil d'Ariane (le "index" en haut)
+  // et l'en-tête de page sont remplacés par le bloc "hero"
+  .article-title,
+  .breadcrumb-container,
+  .breadcrumbs,
+  .page-header {
+    display: none;
+  }
+
+  article {
+    max-width: none;
+  }
+}
+
+// ─── Accueil : masque le "index" (titre auto, date, fil d'Ariane) ─
+// On cible toute page qui contient le bloc .hero : ça ne dépend pas du nom de la page.
+#quartz-body:has(.hero) {
+  .article-title,
+  .content-meta,
+  .breadcrumb-container,
+  .breadcrumbs,
+  .page-header {
+    display: none;
+  }
+
+  // Largeur de la page d'accueil : on lève la limite de lecture (65ch)
+  .center {
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding-top: 6vh;
+  }
+
+  article {
+    max-width: none;
+  }
+}
+
+// ─── Page "pleine image" ────────────────────────────────────────
+// À activer dans une note en y plaçant cette ligne (n'importe où) :
+//   <div class="pleine-image"></div>
+// Plus de panneaux latéraux (explorateur, graphe, recherche...),
+// plus de titre : l'image occupe toute la largeur.
+// (on détecte la présence de ce repère avec :has, ça ne dépend pas
+// du frontmatter ni du nom de la page)
+#quartz-body:has(.pleine-image) {
+  display: block; // désactive la grille de Quartz
+
+  .sidebar,
+  .article-title,
+  .content-meta,
+  .breadcrumb-container,
+  .breadcrumbs,
+  .page-header,
+  .tag-list {
+    display: none;
+  }
+
+  .center,
+  article {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  // Les images s'enchaînent, bord à bord, sans espace entre elles
+  article p {
+    margin: 0;
+    line-height: 0;
+  }
+
+  article br {
+    display: none;
+  }
+
+  article img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+  }
+}
+
+// ─── Petit menu déroulant flottant (en haut à gauche) ───────────
+// À utiliser dans une note, par exemple sur la page pleine image :
+//   <details class="menu-flottant">
+//   <summary>☰ Menu</summary>
+//
+//   - [[index|Accueil]]
+//   - [[Blog]]
+//
+//   </details>
+.menu-flottant {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+  background: var(--light);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  line-height: 1.6;
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    list-style: none; // retire la petite flèche par défaut
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  ul {
+    margin: 0.6rem 0 0.2rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    margin: 0.3rem 0;
+  }
+}
+
+// ─── Largeur de lecture globale ─────────────────────────────────
+article {
+  max-width: 65ch;
+}
+
+// ─── Typographie fine ───────────────────────────────────────────
+h1, h2, h3 {
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+// ─── Liens discrets ─────────────────────────────────────────────
+a {
+  text-decoration: underline;
+  text-decoration-color: var(--secondary);
+  text-underline-offset: 2px;
+
+  &:hover {
+    text-decoration-color: var(--dark);
+  }
+}
+
+// ─── Tags : petits, discrets ────────────────────────────────────
+.tag-list {
+  gap: 0.4rem;
+  margin-top: 1.5rem;
+
+  a {
+    font-size: 0.8rem;
+    color: var(--gray);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--secondary);
+    }
+  }
+}
+
+// ─── Graphe : plus petit, discret ───────────────────────────────
+#graph-container {
+  height: 200px;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// ─── Dark mode : transition douce ───────────────────────────────
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+// ─── Masque la date (content-meta) ──────────────────────────────
+.content-meta {
+  display: none;
+}
+
+// ─── Titre géant + sous-titre ───────────────────────────────────
+.hero {
+  text-align: center;
+  margin: 1rem 0 2.5rem;
+
+  .hero-title {
+    // clamp(min, idéal, max) : s'adapte à la largeur de l'écran
+    font-size: clamp(3rem, 12vw, 6.5rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    // L'espacement des lettres s'ajoute aussi après la dernière lettre,
+    // ce qui décale le mot vers la gauche : on le compense ici.
+    padding-left: 0.12em;
+    line-height: 1;
+    color: var(--dark);
+  }
+
+  .hero-subtitle {
+    margin-top: 0.6rem;
+    font-size: 1rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 700;
+    color: var(--darkgray);
+  }
+}
+
+// ─── Image à gauche, texte à droite ─────────────────────────────
+.intro {
+  display: grid;
+  // proportions image / texte : plus le 1er chiffre est grand, plus l'image est grande
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr);
+  gap: 2.5rem;
+  align-items: center;
+  margin: 1rem 0 2rem;
+
+  .intro-image {
+    width: 100%;
+    max-height: 560px;
+    object-fit: contain;
+    border-radius: 8px;
+
+    // Agrandit l'image sans changer les colonnes : elle "mange" l'espace vide
+    // à gauche. 1.3 = +30 %. Augmentez pour plus grand, mettez 1 pour désactiver.
+    // transform-origin: l'image grandit vers la gauche, depuis le côté du texte.
+    @media (min-width: 801px) {
+      // translateY négatif = remonte l'image (ici de 1.5rem) ; 0 pour annuler
+      transform: translateY(-1.5rem) scale(1.3);
+      transform-origin: center right;
+    }
+  }
+
+  .intro-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+
+    // Le lien [[À Propos|Sa(voir) plus]] devient une grande carte.
+    // C'est toujours un vrai lien Quartz : l'aperçu au survol reste actif.
+    a.internal {
+      display: block;
+      margin-top: 1.5rem;
+      padding: 1.6rem 1.8rem;
+      border: 1px solid var(--lightgray);
+      border-radius: 12px;
+      background: var(--light);
+      text-align: center;
+      text-decoration: none;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--secondary);
+      transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        border-color: var(--secondary);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+      }
+    }
+  }
+
+  // Sur petit écran : l'image repasse au-dessus du texte
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ─── Blocs cliquables (style gatekeeper.wiki) ───────────────────
+// (inutilisés pour l'instant, gardés au cas où)
+.cards {
+  display: grid;
+  // Autant de colonnes que possible, 220px minimum chacune
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid var(--lightgray);
+    border-radius: 10px;
+    background: var(--light);
+    text-decoration: none;
+    color: var(--darkgray);
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      border-color: var(--secondary);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--secondary);
+    }
+
+    .card-text {
+      font-size: 0.95rem;
+    }
+  }
+}
+
+// ─── Pied de page ───────────────────────────────────────────────
+.home-footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--lightgray);
+  text-align: center;
+  font-size: 0.95rem;
+
+  .home-footer-title {
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin: 0.3rem 0;
+    line-height: 1.4; // lignes d'adresse rapprochées
+  }
+}
