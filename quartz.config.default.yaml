@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
 configuration:
   pageTitle: SPORADIC
-  pageTitleSuffix: "association fongique et frugale"
+  pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
   analytics: null
@@ -121,21 +121,23 @@ plugins:
   - source: "@quartz-community/content-page"
     enabled: true
   - source: "@quartz-community/folder-page"
-    enabled: true
+    enabled: 
+     options:
+      showFolderCount: false
   - source: "@quartz-community/tag-page"
     enabled: true
-  - source: "@quartz-community/explorer"
+  - source: github:quartz-community/explorer
     enabled: true
+    options:
+      title: ""
     layout:
       position: left
       priority: 50
-      condition: not-index
-  - source: "@quartz-community/graph"
+  - source: github:quartz-community/graph
     enabled: true
     layout:
-      position: right
-      priority: 10
-      condition: not-index
+      position: left
+      priority: 60        # sous l'explorateur (50)    
   - source: "@quartz-community/search"
     enabled: true
     options:
@@ -174,18 +176,18 @@ plugins:
       position: left
       priority: 10
       condition: not-index
-  - source: "@quartz-community/darkmode"
+  - source: github:quartz-community/darkmode
     enabled: true
     layout:
-      position: right
-      priority: 40
-      group: toolbar
+      position: left
+      priority: 30
+      group: toolbar      # à côté de la recherche
       condition: not-index
-  - source: "@quartz-community/reader-mode"
+  - source: github:quartz-community/reader-mode
     enabled: true
     layout:
-      position: right
-      priority: 45
+      position: left
+      priority: 35
       group: toolbar
       condition: not-index
   - source: "@quartz-community/breadcrumbs"

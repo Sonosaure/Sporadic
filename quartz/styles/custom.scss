@@ -58,9 +58,10 @@ section[data-slug="index"] {
   // Largeur de la page d'accueil : on lève la limite de lecture (65ch)
   .center {
     width: 100%;
-    max-width: 72rem;
+    max-width: 68rem;
     margin: 0 auto;
-    padding-top: 6vh;
+    padding: 6vh clamp(1.5rem, 5vw, 4rem) 0;
+    box-sizing: border-box;
   }
 
   article {
@@ -73,8 +74,6 @@ section[data-slug="index"] {
 //   <div class="pleine-image"></div>
 // Plus de panneaux latéraux (explorateur, graphe, recherche...),
 // plus de titre : l'image occupe toute la largeur.
-// (on détecte la présence de ce repère avec :has, ça ne dépend pas
-// du frontmatter ni du nom de la page)
 #quartz-body:has(.pleine-image) {
   display: block; // désactive la grille de Quartz
 
@@ -151,13 +150,125 @@ section[data-slug="index"] {
   }
 
   li {
-    margin: 0.3rem 0;
+    margin: 0.5rem 0;
+  }
+
+  // ▼ Les liens du menu deviennent des boutons, comme "Sa(voir) plus"
+  li a.internal {
+    display: block;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid var(--lightgray);
+    border-radius: 12px;
+    background: var(--light);
+    text-align: center;
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--secondary);
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+
+    // effet au survol (pour tous les boutons)
+    &:hover {
+      transform: translateY(-3px);
+      border-color: var(--secondary);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    // ▼ "Accueil" : on annule l'effet au survol
+    &[data-slug="index"]:hover,
+    &[href="./"]:hover,
+    &[href="../"]:hover,
+    &[href="index"]:hover {
+      transform: none;
+      border-color: var(--lightgray);
+      box-shadow: none;
+    }
   }
 }
 
-// ─── Largeur de lecture globale ─────────────────────────────────
-article {
-  max-width: 65ch;
+// ─── Mise en page des pages de contenu ──────────────────────────
+// Deux largeurs :
+//   $texte = colonne de lecture (paragraphes, listes, titres)
+//   $large = éléments larges (tableaux, fiches, PDF, images seules)
+// Le titre et l'article partagent le même bord gauche : tout est aligné.
+// (ne s'applique ni à l'accueil, ni à la page pleine image)
+$texte: 40rem; // plus petit = texte plus resserré
+$large: 62rem; // largeur maximale des éléments larges
+
+#quartz-body:not(:has(.hero)):not(:has(.pleine-image)) {
+  .center {
+    min-width: 0; // empêche le contenu de déborder du cadre
+    width: 100%; // sinon la colonne se rétrécit au contenu et flotte au milieu
+    box-sizing: border-box;
+  }
+
+  // le bloc titre/tags, l'article et la liste des pages d'un dossier :
+  // même largeur, même bord gauche
+  .page-header,
+  .page-listing,
+  article {
+    max-width: $large;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-wrap: break-word;
+  }
+
+  article {
+    // le texte : colonne de lecture confortable
+    > :is(p, ul, ol, h1, h2, h3, h4, h5, h6, hr, section, details, pre),
+    > blockquote:not(.callout),
+    > .callout:not([data-callout="pdfs"]):not([data-callout="especes"]):not([data-callout="cartes"]):not([data-callout="tableau"]):not([data-callout^="figure"]) {
+      max-width: $texte;
+    }
+
+    // une image seule dans son paragraphe : pleine largeur
+    > p:has(> img:only-child) {
+      max-width: none;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    iframe {
+      max-width: 100%;
+    }
+
+    // tableaux plus lisibles : texte un peu plus petit, alignés en haut
+    table {
+      font-size: 0.85em;
+
+      // images de tableau : toutes au même format (carré, recadré)
+      img {
+        display: block;
+        width: 100%;
+        max-width: 11rem;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius: 4px;
+      }
+    }
+    th,
+    td {
+      vertical-align: top;
+      line-height: 1.45;
+      padding: 0.6rem 0.75rem;
+    }
+  }
+}
+
+// Colonne de droite vide : on la ferme pour que le contenu respire
+@media (min-width: 1201px) {
+  #quartz-body:not(:has(.hero)):not(:has(.pleine-image)) {
+    grid-template-columns: 320px minmax(0, 1fr) 0;
+
+    .center {
+      padding: 0 3rem;
+    }
+  }
 }
 
 // ─── Typographie fine ───────────────────────────────────────────
@@ -208,7 +319,6 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-
 // ─── Masque la date (content-meta) ──────────────────────────────
 .content-meta {
   display: none;
@@ -243,7 +353,6 @@ body {
 // ─── Image à gauche, texte à droite ─────────────────────────────
 .intro {
   display: grid;
-  // proportions image / texte : plus le 1er chiffre est grand, plus l'image est grande
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr);
   gap: 2.5rem;
   align-items: center;
@@ -255,22 +364,18 @@ body {
     object-fit: contain;
     border-radius: 8px;
 
-    // Agrandit l'image sans changer les colonnes : elle "mange" l'espace vide
-    // à gauche. 1.3 = +30 %. Augmentez pour plus grand, mettez 1 pour désactiver.
-    // transform-origin: l'image grandit vers la gauche, depuis le côté du texte.
     @media (min-width: 801px) {
-      // translateY négatif = remonte l'image (ici de 1.5rem) ; 0 pour annuler
-      transform: translateY(-1.5rem) scale(1.3);
-      transform-origin: center right;
+      transform: translateY(-1rem) scale(1.15);
+      transform-origin: center;
     }
   }
 
   .intro-text {
+    max-width: 32rem; // plus petit = plus resserré
+    justify-self: center; // centré dans sa colonne
     font-size: 1.1rem;
     line-height: 1.6;
 
-    // Le lien [[À Propos|Sa(voir) plus]] devient une grande carte.
-    // C'est toujours un vrai lien Quartz : l'aperçu au survol reste actif.
     a.internal {
       display: block;
       margin-top: 1.5rem;
@@ -296,51 +401,8 @@ body {
     }
   }
 
-  // Sur petit écran : l'image repasse au-dessus du texte
   @media (max-width: 800px) {
     grid-template-columns: 1fr;
-  }
-}
-
-// ─── Blocs cliquables (style gatekeeper.wiki) ───────────────────
-// (inutilisés pour l'instant, gardés au cas où)
-.cards {
-  display: grid;
-  // Autant de colonnes que possible, 220px minimum chacune
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
-
-  .card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    padding: 1.2rem 1.4rem;
-    border: 1px solid var(--lightgray);
-    border-radius: 10px;
-    background: var(--light);
-    text-decoration: none;
-    color: var(--darkgray);
-    transition:
-      transform 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.2s ease;
-
-    &:hover {
-      transform: translateY(-4px);
-      border-color: var(--secondary);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-    }
-
-    .card-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--secondary);
-    }
-
-    .card-text {
-      font-size: 0.95rem;
-    }
   }
 }
 
@@ -362,4 +424,508 @@ body {
     margin: 0.3rem 0;
     line-height: 1.4; // lignes d'adresse rapprochées
   }
+}
+
+// ─── Pages de dossier (Travaux de Recherche, Blog…) ─────────────
+// Un beige un peu plus foncé que le fond, qui s'adapte au mode sombre
+$beige: color-mix(in srgb, var(--lightgray) 45%, var(--light));
+
+// Titre de la page (ex. "Blog") : en gras, y compris dans l'aperçu au survol
+.article-title,
+h1.article-title {
+  font-weight: 700;
+}
+
+// Titre de la page : petit trait vert dessous
+#quartz-body:not(:has(.hero)) .article-title {
+  &::after {
+    content: "";
+    display: block;
+    width: 3rem;
+    height: 3px;
+    margin-top: 0.7rem;
+    background: var(--tertiary);
+    border-radius: 2px;
+  }
+}
+
+.page-listing {
+  // "N éléments sous ce dossier" : masqué
+  > p {
+    display: none;
+  }
+
+  // une seule colonne : le titre occupe toute la largeur (plus de colonne date / tags)
+  .section {
+    display: block;
+  }
+  .section > .meta,
+  .tags:empty {
+    display: none;
+  }
+
+  // seule la liste principale a un trait au-dessus (pas les listes de tags à l'intérieur)
+  .section-ul {
+    max-width: $texte; // la liste garde la largeur de lecture, alignée à gauche
+    margin: 2rem 0 0;
+    border-top: 1px solid var(--lightgray);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .tags {
+    margin: 0;
+    border: none;
+  }
+
+  // un lien vide ne dessine plus de ligne
+  a.internal:empty {
+    display: none;
+  }
+
+  li,
+  .section-li {
+    list-style: none;
+    margin: 0;
+
+    &::marker {
+      content: "";
+    }
+  }
+
+  h3 {
+    margin: 0;
+  }
+
+  li a.internal,
+  .section a.internal {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 1.1rem 0.2rem;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--lightgray);
+    border-radius: 0;
+    box-shadow: none;
+    font-family: var(--headerFont);
+    font-weight: 400; // titres des pages de la liste : normal
+    font-size: 1.2rem;
+    letter-spacing: 0;
+    color: var(--dark);
+    text-decoration: none;
+    // "DÉPOLLUTION" -> "Dépollution"
+    text-transform: lowercase;
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
+
+    // petite flèche mono à droite
+    &::after {
+      content: "→";
+      font-family: var(--codeFont);
+      font-size: 0.95rem;
+      color: var(--gray);
+      transition:
+        transform 0.2s ease,
+        color 0.2s ease;
+    }
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+
+      &::after {
+        transform: translateX(6px);
+        color: var(--secondary);
+      }
+    }
+  }
+}
+
+// ─── Explorateur + titre du site ────────────────────────────────
+// Espacement vertical commun à toutes les lignes de l'explorateur
+// (plus grand = menu plus aéré, plus petit = plus serré)
+$ligne: 0.28rem;
+
+.page-title a {
+  text-decoration: none;
+  font-family: var(--headerFont);
+  font-weight: 700;
+  letter-spacing: 0.12em; // comme le grand titre de l'accueil
+}
+
+.explorer {
+  // pas de marges parasites entre les lignes : c'est $ligne qui règle l'espace
+  li {
+    margin: 0;
+  }
+
+  // plus aucun soulignement
+  a,
+  .folder-title,
+  button {
+    text-decoration: none !important;
+  }
+
+  // Dossiers : sans-serif gras, sobres
+  .folder-title,
+  .folder-button span {
+    font-family: var(--headerFont);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--dark);
+  }
+
+  // Pages : mono, petits boutons arrondis comme ton menu déroulant
+  li > a {
+    display: inline-block;
+    margin: 0.1rem 0;
+    padding: $ligne 0.8rem;
+    border: 1px solid var(--lightgray);
+    border-radius: 10px;
+    background: var(--light);
+    font-family: var(--codeFont);
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--darkgray);
+    transition:
+      transform 0.15s ease,
+      border-color 0.15s ease;
+
+    &:hover {
+      transform: translateX(3px);
+      border-color: var(--secondary);
+      color: var(--dark);
+    }
+
+    // page en cours
+    &.active {
+      border-color: var(--tertiary);
+      background: color-mix(in srgb, var(--lightgray) 60%, var(--light));
+      color: var(--dark);
+    }
+  }
+}
+
+@media (min-width: 801px) {
+  .explorer .title-button,
+  .explorer h2 {
+    display: none;
+  }
+}
+
+// ─── Explorateur : retire la ligne racine "SPORADIC" ────────────
+// 1. on cache la ligne du dossier racine (le lien qui finit par /sporadic/)
+li > div:has(a.folder-button[href$="/sporadic/"]) {
+  display: none;
+}
+
+// 2. ses enfants (Blog, Travaux de Recherche, À Propos…) restent
+//    toujours ouverts, sans décalage ni trait vertical à gauche
+li:has(> div a.folder-button[href$="/sporadic/"]) > .folder-outer {
+  grid-template-rows: 1fr !important;
+
+  > ul {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+  }
+}
+
+// ─── Explorateur : ordre personnalisé ───────────────────────────
+li:has(> div a.folder-button[href$="/sporadic/"]) > .folder-outer > ul {
+  display: flex;
+  flex-direction: column;
+
+  // tout le reste passe après
+  > li {
+    order: 10;
+  }
+
+  // l'ordre que tu veux (le plus petit chiffre = le plus haut)
+
+  > li:has(a.folder-button[href*="travaux" i]) {
+    order: 2;
+  }
+  > li:has(a.folder-button[href*="blog" i]) {
+    order: 3;
+  }
+}
+
+// ─── Accueil : pas d'explorateur, seulement le petit menu flottant ─
+#quartz-body:has(.hero) {
+  display: block; // désactive la grille de Quartz, comme sur la page pleine image
+
+  .sidebar {
+    display: none; // retire explorateur, recherche, graphe
+  }
+}
+
+// ─── Explorateur : pages DANS un dossier = texte simple ─────────
+.folder-outer .folder-outer li > a {
+  margin: 0.1rem 0;
+  padding: $ligne 0.3rem;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 0.78rem;
+  color: var(--darkgray);
+
+  // petite flèche devant
+  &::before {
+    content: "↳";
+    margin-right: 0.5rem;
+    color: var(--gray);
+  }
+
+  &:hover {
+    border: none;
+    color: var(--secondary);
+    transform: translateX(3px);
+  }
+
+  &.active {
+    color: var(--dark);
+    font-weight: 600;
+    background: none;
+  }
+}
+
+// ───────── Formats sporadic : minimal, fongique, frugal ─────────
+// On neutralise le style "callout" par défaut pour nos 4 types.
+.callout[data-callout="pdfs"],
+.callout[data-callout="cartes"],
+.callout[data-callout="tableau"],
+.callout[data-callout="especes"],
+.callout[data-callout^="figure"] {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 1.5rem 0;
+
+  // on cache le titre et l'icône automatiques
+  > .callout-title {
+    display: none;
+  }
+  > .callout-content {
+    padding: 0;
+  }
+}
+
+// ───── [!pdfs] : documents côte à côte, sans cadre ─────
+.callout[data-callout="pdfs"] > .callout-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.75rem;
+
+  br {
+    display: none; // les sauts de ligne ne comptent pas
+  }
+  p {
+    display: contents; // les iframes deviennent les éléments de la grille
+  }
+
+  iframe,
+  embed,
+  object {
+    width: 100%;
+    aspect-ratio: 1 / 1.414; // proportions d'une page A4 : pas de bande grise autour
+    height: auto;
+    border: none;
+    background: var(--lightgray);
+  }
+}
+
+// ─── Lecteur PDF : le plus discret possible ─────────────────────
+// (la barre d'outils se masque avec #toolbar=0 dans l'adresse du PDF, voir la note)
+iframe[src*=".pdf" i] {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.414;
+  height: auto;
+  border: none;
+  border-radius: 4px;
+}
+
+// ───── [!cartes] : une liste "- ..." devient des cartes ─────
+.callout[data-callout="cartes"] > .callout-content {
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+  li {
+    border: 1px solid var(--lightgray);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.95em;
+    line-height: 1.4;
+    transition: border-color 0.15s;
+    &:hover {
+      border-color: var(--secondary);
+    }
+  }
+  li::marker {
+    content: none;
+  }
+}
+
+// ───── [!especes] : fiches (image + nom + info) côte à côte ─────
+// Chaque "- " de la liste = une fiche : image, **Nom**, puis INFO.
+.callout[data-callout="especes"] > .callout-content {
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+  li {
+    border: 1px solid var(--lightgray);
+    border-radius: 6px;
+    padding: 0.6rem;
+    font-size: 0.8em;
+    line-height: 1.4;
+    transition: border-color 0.15s;
+    &:hover {
+      border-color: var(--secondary);
+    }
+  }
+  li::marker {
+    content: none;
+  }
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 4px;
+    margin: 0 0 0.5rem;
+  }
+  strong {
+    display: block;
+    font-size: 1.1em;
+    margin-bottom: 0.25rem;
+  }
+  // les sauts de ligne juste après l'image ou le nom sont inutiles
+  img + br,
+  strong + br {
+    display: none;
+  }
+}
+
+// ───── [!tableau] : tableau en encart épuré ─────
+.callout[data-callout="tableau"] > .callout-content {
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  overflow-x: auto;
+
+  table {
+    border: none;
+    margin: 0;
+    width: 100%;
+  }
+  th,
+  td {
+    border-left: none;
+    border-right: none;
+  }
+  th {
+    color: var(--secondary);
+    font-weight: 600;
+  }
+}
+
+// ───── [!figure] / [!figure-droite] : image à côté du texte ─────
+// Dans la note :
+//   > [!figure]
+//   > ![[mon-image.png]]
+//   >
+//   > Le texte qui se place à côté de l'image.
+// (la ligne vide ">" sépare l'image du texte)
+// [!figure] = image à gauche ; [!figure-droite] = image à droite.
+.callout[data-callout^="figure"] > .callout-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center; // texte centré en hauteur à côté de l'image ("end" = aligné sur le bas)
+  font-size: 0.9em;
+  line-height: 1.5;
+
+  > p {
+    margin: 0;
+  }
+
+  // le texte : petite barre à gauche, comme une citation
+  > p:not(:has(img)) {
+    border-left: 3px solid var(--secondary);
+    padding-left: 1rem;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+
+  // Sur petit écran : l'image repasse au-dessus du texte
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.callout[data-callout="figure-droite"] > .callout-content {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+
+  > p:has(img) {
+    order: 2;
+  }
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+
+    > p:has(img) {
+      order: 0;
+    }
+  }
+}
+
+// ─── Graphe dans la colonne de gauche : discret et aéré ─────────
+.sidebar.left .graph {
+  margin-top: 2.5rem;
+
+  > h3 {
+    font-family: var(--codeFont);
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--gray);
+  }
+}
+
+// ─── La page À Propos n'est accessible que par le bouton d'accueil ─
+// ("$=" : l'adresse FINIT par -propos, pour ne pas toucher "à propos des abeilles", etc.)
+.menu-flottant li:has(a[href$="-propos" i]),
+.menu-flottant li:has(a[href*="savoir" i]),
+.explorer li:has(> a[href$="-propos" i]) {
+  display: none;
+}
+
+// ─── Explorateur : dossiers images / pdf invisibles ─────────────
+// ":not(.folder-outer)" : on ne vise que la ligne du dossier lui-même,
+// pas la zone qui contient tous les sous-dossiers.
+.explorer li:has(> div:not(.folder-outer) a[href$="/images/"]),
+.explorer li:has(> div:not(.folder-outer) a[href$="/pdf/"]) {
+  display: none;
 }
